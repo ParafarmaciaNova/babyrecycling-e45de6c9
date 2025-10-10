@@ -1,11 +1,30 @@
+import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import productStroller from "@/assets/product-stroller.jpg";
 import productCrib from "@/assets/product-crib.jpg";
 import productClothes from "@/assets/product-clothes.jpg";
 import productToys from "@/assets/product-toys.jpg";
 
+interface Product {
+  id: number;
+  image: string;
+  title: string;
+  description: string;
+  price: string;
+}
+
 const Products = () => {
-  const products = [
+  const [customProducts, setCustomProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    // Load custom products from localStorage
+    const savedProducts = localStorage.getItem("customProducts");
+    if (savedProducts) {
+      setCustomProducts(JSON.parse(savedProducts));
+    }
+  }, []);
+
+  const defaultProducts = [
     {
       id: 1,
       image: productStroller,
@@ -50,6 +69,9 @@ const Products = () => {
     },
   ];
 
+  // Combine default and custom products
+  const allProducts = [...defaultProducts, ...customProducts];
+
   return (
     <div className="min-h-screen py-12">
       <div className="container">
@@ -62,7 +84,7 @@ const Products = () => {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
+          {allProducts.map((product) => (
             <ProductCard
               key={product.id}
               image={product.image}
