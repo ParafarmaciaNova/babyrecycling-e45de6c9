@@ -1,23 +1,29 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Plus, Trash2 } from "lucide-react";
+import { LogOut, Plus, Trash2, Shield } from "lucide-react";
+import { Session, User } from "@supabase/supabase-js";
 
 interface Product {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  price: string;
+  price: number;
   image: string;
 }
 
 const Admin = () => {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [newProduct, setNewProduct] = useState({
     title: "",
@@ -27,37 +33,102 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    // Check if already authenticated in session
-    const authenticated = sessionStorage.getItem("adminAuth") === "true";
-    setIsAuthenticated(authenticated);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(() => {
+            checkAdminStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+          setLoading(false);
+        }
+      }
+    );
 
-    // Load products from localStorage
-    const savedProducts = localStorage.getItem("customProducts");
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
-    }
-  }, []);
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        checkAdminStatus(session.user.id);
+      } else {
+        setLoading(false);
+        navigate("/auth");
+      }
+    });
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password === "admin") {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("adminAuth", "true");
-      toast({
-        title: "Accés concedit",
-        description: "Benvingut/da a l'administració",
-      });
-    } else {
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      setIsAdmin(!!data);
+      
+      if (data) {
+        loadProducts();
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Contrasenya incorrecta",
+        description: "No s'ha pogut verificar l'estat d'administrador",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "No s'han pogut carregar els productes",
         variant: "destructive",
       });
     }
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+      toast({
+        title: "Sessió tancada",
+        description: "Has tancat la sessió correctament",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!newProduct.title || !newProduct.description || !newProduct.price) {
@@ -69,69 +140,106 @@ const Admin = () => {
       return;
     }
 
-    const product: Product = {
-      id: Date.now(),
-      ...newProduct,
-    };
+    const priceNumber = parseFloat(newProduct.price);
+    if (isNaN(priceNumber) || priceNumber < 0) {
+      toast({
+        title: "Error",
+        description: "El preu ha de ser un número vàlid",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const updatedProducts = [...products, product];
-    setProducts(updatedProducts);
-    localStorage.setItem("customProducts", JSON.stringify(updatedProducts));
+    try {
+      const { error } = await supabase
+        .from("products")
+        .insert({
+          title: newProduct.title.trim(),
+          description: newProduct.description.trim(),
+          price: priceNumber,
+          image: newProduct.image.trim() || "/placeholder.svg",
+          created_by: user?.id,
+        });
 
-    toast({
-      title: "Producte afegit!",
-      description: "El producte s'ha afegit correctament",
-    });
+      if (error) throw error;
 
-    // Reset form
-    setNewProduct({
-      title: "",
-      description: "",
-      price: "",
-      image: "",
-    });
+      toast({
+        title: "Producte afegit!",
+        description: "El producte s'ha afegit correctament",
+      });
+
+      // Reset form and reload products
+      setNewProduct({
+        title: "",
+        description: "",
+        price: "",
+        image: "",
+      });
+      
+      loadProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No s'ha pogut afegir el producte",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteProduct = (id: number) => {
-    const updatedProducts = products.filter((p) => p.id !== id);
-    setProducts(updatedProducts);
-    localStorage.setItem("customProducts", JSON.stringify(updatedProducts));
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
 
-    toast({
-      title: "Producte eliminat",
-      description: "El producte s'ha eliminat correctament",
-    });
+      if (error) throw error;
+
+      toast({
+        title: "Producte eliminat",
+        description: "El producte s'ha eliminat correctament",
+      });
+
+      loadProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No s'ha pogut eliminar el producte",
+        variant: "destructive",
+      });
+    }
   };
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg text-muted-foreground">Carregant...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-4 rounded-full bg-primary/10 w-fit">
-              <Lock className="h-8 w-8 text-primary" />
+            <div className="mx-auto mb-4 p-4 rounded-full bg-destructive/10 w-fit">
+              <Shield className="h-8 w-8 text-destructive" />
             </div>
-            <CardTitle className="text-2xl">Accés a l'Administració</CardTitle>
+            <CardTitle className="text-2xl">Accés Denegat</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Contrasenya
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Introdueix la contrasenya"
-                  className="rounded-xl"
-                />
-              </div>
-              <Button type="submit" className="w-full rounded-full">
-                Accedir
-              </Button>
-            </form>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              No tens permisos d'administrador per accedir a aquesta pàgina.
+            </p>
+            <Button onClick={handleLogout} variant="outline" className="rounded-full">
+              <LogOut className="h-4 w-4 mr-2" />
+              Tancar Sessió
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -141,9 +249,15 @@ const Admin = () => {
   return (
     <div className="min-h-screen py-12">
       <div className="container max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Administració</h1>
-          <p className="text-muted-foreground">Gestiona els productes de Baby Recycling</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Administració</h1>
+            <p className="text-muted-foreground">Gestiona els productes de Baby Recycling</p>
+          </div>
+          <Button onClick={handleLogout} variant="outline" className="rounded-full">
+            <LogOut className="h-4 w-4 mr-2" />
+            Tancar Sessió
+          </Button>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
@@ -190,15 +304,18 @@ const Admin = () => {
 
                 <div className="space-y-2">
                   <label htmlFor="price" className="text-sm font-medium">
-                    Preu *
+                    Preu (€) *
                   </label>
                   <Input
                     id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
                     value={newProduct.price}
                     onChange={(e) =>
                       setNewProduct({ ...newProduct, price: e.target.value })
                     }
-                    placeholder="Ex: 85€"
+                    placeholder="Ex: 85"
                     className="rounded-xl"
                   />
                 </div>
@@ -249,7 +366,7 @@ const Admin = () => {
                           {product.description}
                         </p>
                         <p className="text-sm font-bold text-primary mt-1">
-                          {product.price}
+                          {product.price}€
                         </p>
                       </div>
                       <Button
@@ -268,13 +385,6 @@ const Admin = () => {
           </Card>
         </div>
 
-        <div className="mt-8 p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
-          <p className="text-sm text-destructive">
-            ⚠️ <strong>Avís de seguretat:</strong> Aquesta és una solució temporal amb contrasenya
-            hardcoded. Per a una aplicació en producció, utilitza Lovable Cloud amb autenticació
-            real i base de dades.
-          </p>
-        </div>
       </div>
     </div>
   );
