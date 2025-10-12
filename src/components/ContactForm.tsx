@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { Upload } from "lucide-react";
 
 const ContactForm = () => {
   const { toast } = useToast();
@@ -11,6 +12,18 @@ const ContactForm = () => {
     email: "",
     message: "",
   });
+  const [files, setFiles] = useState<File[]>([]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles([...files, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +46,7 @@ const ContactForm = () => {
 
     // Reset form
     setFormData({ name: "", email: "", message: "" });
+    setFiles([]);
   };
 
   return (
@@ -77,6 +91,51 @@ const ContactForm = () => {
           rows={6}
           className="rounded-xl"
         />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="photos" className="text-sm font-medium">
+          Fotos (opcional)
+        </label>
+        <div className="space-y-3">
+          <label
+            htmlFor="photos"
+            className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary transition-colors"
+          >
+            <Upload className="h-5 w-5" />
+            <span className="text-sm">Puja o fes una foto</span>
+          </label>
+          <Input
+            id="photos"
+            type="file"
+            multiple
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          {files.length > 0 && (
+            <div className="space-y-2">
+              {files.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-2 bg-muted rounded-lg"
+                >
+                  <span className="text-sm truncate flex-1">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFile(index)}
+                    className="h-8"
+                  >
+                    Eliminar
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <Button

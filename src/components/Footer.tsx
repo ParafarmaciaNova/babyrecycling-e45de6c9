@@ -46,7 +46,7 @@ const Footer = () => {
             <h3 className="text-sm font-semibold">Segueix-nos</h3>
             <div className="flex gap-4">
               <a
-                href="https://facebook.com"
+                href="https://facebook.com/ParafarmaciaNova"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
@@ -54,7 +54,7 @@ const Footer = () => {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/parafarmacianova2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
@@ -62,7 +62,7 @@ const Footer = () => {
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="mailto:info@babyrecycling.cat"
+                href="mailto:info@baby-recycling.com"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Mail className="h-5 w-5" />

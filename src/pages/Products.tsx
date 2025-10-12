@@ -50,53 +50,8 @@ const Products = () => {
     }
   };
 
-  const defaultProducts = [
-    {
-      id: "1",
-      image: productStroller,
-      title: "Cotxet Rosa Pastel",
-      description: "Cotxet en excel·lent estat, amb cistella de compra i parasol inclòs.",
-      price: "85€",
-    },
-    {
-      id: "2",
-      image: productCrib,
-      title: "Bressol de Fusta Natural",
-      description: "Bressol ecològic de fusta, perfecte per als primers mesos del bebè.",
-      price: "120€",
-    },
-    {
-      id: "3",
-      image: productClothes,
-      title: "Lot de Roba de Bebè",
-      description: "Conjunt de 10 peces de roba, colors pastels, talla 0-6 mesos.",
-      price: "35€",
-    },
-    {
-      id: "4",
-      image: productToys,
-      title: "Joguines Educatives",
-      description: "Lot de joguines de fusta i tela suau, ideals per estimular els sentits.",
-      price: "25€",
-    },
-    {
-      id: "5",
-      image: productStroller,
-      title: "Cotxet de Passeig",
-      description: "Model lleuger i fàcil de plegar, perfecte per a viatges.",
-      price: "95€",
-    },
-    {
-      id: "6",
-      image: productClothes,
-      title: "Conjunt Hivern",
-      description: "Roba d'hivern talla 6-12 mesos, colors suaus i càlids.",
-      price: "40€",
-    },
-  ];
-
-  // Combine default and database products
-  const allProducts = [...defaultProducts, ...dbProducts];
+  // Only show database products
+  const allProducts = dbProducts;
 
   return (
     <div className="min-h-screen py-12">

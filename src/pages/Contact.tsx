@@ -6,12 +6,12 @@ const Contact = () => {
     {
       icon: Mail,
       title: "Email",
-      content: "info@babyrecycling.cat",
+      content: "info@baby-recycling.com",
     },
     {
       icon: Phone,
       title: "Telèfon",
-      content: "+34 123 456 789",
+      content: "640 632 108",
     },
     {
       icon: MapPin,
@@ -57,11 +57,9 @@ const Contact = () => {
             <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
               <h3 className="font-semibold mb-2">Horari d'atenció</h3>
               <p className="text-sm text-muted-foreground">
-                Dilluns a Divendres: 9:00 - 18:00
+                De dilluns a divendres de 9:00 a 14:00 i de 15:30 a 20:30.
                 <br />
-                Dissabte: 10:00 - 14:00
-                <br />
-                Diumenge: Tancat
+                Dissabtes de 9:00 a 14:00.
               </p>
             </div>
           </div>
