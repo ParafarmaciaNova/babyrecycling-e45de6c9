@@ -1,5 +1,6 @@
-import { Baby, Facebook, Instagram, Mail } from "lucide-react";
+import { Baby, Facebook, Instagram, Mail, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   return (
@@ -71,17 +72,27 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>© 2025 Baby Recycling. Tots els drets reservats.</p>
-          <p className="mt-2">
-            <Link to="/avis-legal" className="hover:text-primary transition-colors">
-              Avís Legal
+        <div className="mt-8 pt-8 border-t">
+          <div className="flex flex-col items-center gap-4">
+            <Link to="/admin">
+              <Button variant="outline" size="sm" className="rounded-full">
+                <Shield className="h-4 w-4 mr-2" />
+                Administració
+              </Button>
             </Link>
-            {" · "}
-            <Link to="/privacitat" className="hover:text-primary transition-colors">
-              Política de Privacitat
-            </Link>
-          </p>
+            <div className="text-center text-sm text-muted-foreground">
+              <p>© 2025 Baby Recycling. Tots els drets reservats.</p>
+              <p className="mt-2">
+                <Link to="/avis-legal" className="hover:text-primary transition-colors">
+                  Avís Legal
+                </Link>
+                {" · "}
+                <Link to="/privacitat" className="hover:text-primary transition-colors">
+                  Política de Privacitat
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
