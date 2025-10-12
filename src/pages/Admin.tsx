@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Plus, Trash2, Shield } from "lucide-react";
+import { LogOut, Plus, Trash2, Shield, Upload, X } from "lucide-react";
 import { Session, User } from "@supabase/supabase-js";
 
 interface Product {
@@ -31,6 +31,8 @@ const Admin = () => {
     price: "",
     image: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   useEffect(() => {
     // Set up auth state listener
@@ -128,6 +130,24 @@ const Admin = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setNewProduct({ ...newProduct, image: "" });
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -150,6 +170,22 @@ const Admin = () => {
       return;
     }
 
+    let imageUrl = newProduct.image.trim() || "/placeholder.svg";
+
+    // Convert image file to base64 if uploaded
+    if (imageFile) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        imageUrl = reader.result as string;
+        await saveProduct(imageUrl, priceNumber);
+      };
+      reader.readAsDataURL(imageFile);
+    } else {
+      await saveProduct(imageUrl, priceNumber);
+    }
+  };
+
+  const saveProduct = async (imageUrl: string, priceNumber: number) => {
     try {
       const { error } = await supabase
         .from("products")
@@ -157,7 +193,7 @@ const Admin = () => {
           title: newProduct.title.trim(),
           description: newProduct.description.trim(),
           price: priceNumber,
-          image: newProduct.image.trim() || "/placeholder.svg",
+          image: imageUrl,
           created_by: user?.id,
         });
 
@@ -175,6 +211,8 @@ const Admin = () => {
         price: "",
         image: "",
       });
+      setImageFile(null);
+      setImagePreview("");
       
       loadProducts();
     } catch (error: any) {
@@ -322,17 +360,57 @@ const Admin = () => {
 
                 <div className="space-y-2">
                   <label htmlFor="image" className="text-sm font-medium">
-                    URL de la imatge (opcional)
+                    Imatge del producte
                   </label>
-                  <Input
-                    id="image"
-                    value={newProduct.image}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, image: e.target.value })
-                    }
-                    placeholder="https://..."
-                    className="rounded-xl"
-                  />
+                  
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Vista prèvia"
+                        className="w-full h-48 object-cover rounded-xl"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 rounded-full"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <label
+                        htmlFor="imageFile"
+                        className="flex items-center justify-center gap-2 p-8 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary transition-colors"
+                      >
+                        <Upload className="h-5 w-5" />
+                        <span className="text-sm">Puja o fes una foto</span>
+                      </label>
+                      <Input
+                        id="imageFile"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        o introdueix una URL:
+                      </p>
+                      <Input
+                        id="image"
+                        value={newProduct.image}
+                        onChange={(e) =>
+                          setNewProduct({ ...newProduct, image: e.target.value })
+                        }
+                        placeholder="https://..."
+                        className="rounded-xl mt-2"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <Button type="submit" className="w-full rounded-full">
