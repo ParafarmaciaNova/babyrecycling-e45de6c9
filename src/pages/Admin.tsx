@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Plus, Trash2, Shield, Upload, X } from "lucide-react";
+import { LogOut, Plus, Trash2, Shield, Upload, X, Edit } from "lucide-react";
 import { Session, User } from "@supabase/supabase-js";
 
 interface Product {
@@ -33,6 +33,7 @@ const Admin = () => {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -148,6 +149,33 @@ const Admin = () => {
     setNewProduct({ ...newProduct, image: "" });
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setNewProduct({
+      title: product.title,
+      description: product.description,
+      price: product.price.toString(),
+      image: product.image,
+    });
+    if (product.image && product.image.startsWith('data:')) {
+      setImagePreview(product.image);
+    } else if (product.image && product.image !== '/placeholder.svg') {
+      setImagePreview(product.image);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProduct(null);
+    setNewProduct({
+      title: "",
+      description: "",
+      price: "",
+      image: "",
+    });
+    setImageFile(null);
+    setImagePreview("");
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -177,11 +205,19 @@ const Admin = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         imageUrl = reader.result as string;
-        await saveProduct(imageUrl, priceNumber);
+        if (editingProduct) {
+          await updateProduct(imageUrl, priceNumber);
+        } else {
+          await saveProduct(imageUrl, priceNumber);
+        }
       };
       reader.readAsDataURL(imageFile);
     } else {
-      await saveProduct(imageUrl, priceNumber);
+      if (editingProduct) {
+        await updateProduct(imageUrl, priceNumber);
+      } else {
+        await saveProduct(imageUrl, priceNumber);
+      }
     }
   };
 
@@ -219,6 +255,48 @@ const Admin = () => {
       toast({
         title: "Error",
         description: error.message || "No s'ha pogut afegir el producte",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateProduct = async (imageUrl: string, priceNumber: number) => {
+    if (!editingProduct) return;
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({
+          title: newProduct.title.trim(),
+          description: newProduct.description.trim(),
+          price: priceNumber,
+          image: imageUrl,
+        })
+        .eq("id", editingProduct.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Producte actualitzat!",
+        description: "El producte s'ha actualitzat correctament",
+      });
+
+      // Reset form and reload products
+      setEditingProduct(null);
+      setNewProduct({
+        title: "",
+        description: "",
+        price: "",
+        image: "",
+      });
+      setImageFile(null);
+      setImagePreview("");
+      
+      loadProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No s'ha pogut actualitzar el producte",
         variant: "destructive",
       });
     }
@@ -303,8 +381,17 @@ const Admin = () => {
           <Card className="h-fit">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Afegir Nou Producte
+                {editingProduct ? (
+                  <>
+                    <Edit className="h-5 w-5" />
+                    Editar Producte
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    Afegir Nou Producte
+                  </>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -413,10 +500,31 @@ const Admin = () => {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full rounded-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Afegir Producte
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1 rounded-full">
+                    {editingProduct ? (
+                      <>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Actualitzar Producte
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Afegir Producte
+                      </>
+                    )}
+                  </Button>
+                  {editingProduct && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      className="rounded-full"
+                    >
+                      Cancel·lar
+                    </Button>
+                  )}
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -454,14 +562,24 @@ const Admin = () => {
                           {product.price}€
                         </p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-destructive hover:text-destructive self-end sm:self-start flex-shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2 self-end sm:self-start flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditProduct(product)}
+                          className="text-primary hover:text-primary"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
