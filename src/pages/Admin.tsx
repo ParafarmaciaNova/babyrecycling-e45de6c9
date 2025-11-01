@@ -285,22 +285,22 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-6 md:py-12 px-4">
       <div className="container max-w-6xl">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Administració</h1>
-            <p className="text-muted-foreground">Gestiona els productes de Baby Recycling</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Administració</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Gestiona els productes de Baby Recycling</p>
           </div>
-          <Button onClick={handleLogout} variant="outline" className="rounded-full">
+          <Button onClick={handleLogout} variant="outline" className="rounded-full w-full sm:w-auto">
             <LogOut className="h-4 w-4 mr-2" />
             Tancar Sessió
           </Button>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
           {/* Add Product Form */}
-          <Card>
+          <Card className="h-fit">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
@@ -384,10 +384,10 @@ const Admin = () => {
                     <div>
                       <label
                         htmlFor="imageFile"
-                        className="flex items-center justify-center gap-2 p-8 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary transition-colors"
+                        className="flex items-center justify-center gap-2 p-6 md:p-8 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary transition-colors"
                       >
                         <Upload className="h-5 w-5" />
-                        <span className="text-sm">Puja o fes una foto</span>
+                        <span className="text-xs md:text-sm">Puja o fes una foto</span>
                       </label>
                       <Input
                         id="imageFile"
@@ -432,18 +432,25 @@ const Admin = () => {
                   Encara no hi ha productes personalitzats
                 </p>
               ) : (
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
                   {products.map((product) => (
                     <div
                       key={product.id}
-                      className="flex items-start justify-between p-4 border rounded-xl hover:bg-muted/50 transition-colors"
+                      className="flex flex-col sm:flex-row items-start gap-3 p-3 md:p-4 border rounded-xl hover:bg-muted/50 transition-colors"
                     >
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{product.title}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                      {product.image && (
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-full sm:w-20 h-32 sm:h-20 object-cover rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm md:text-base">{product.title}</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
                           {product.description}
                         </p>
-                        <p className="text-sm font-bold text-primary mt-1">
+                        <p className="text-sm md:text-base font-bold text-primary mt-1">
                           {product.price}€
                         </p>
                       </div>
@@ -451,7 +458,7 @@ const Admin = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDeleteProduct(product.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive self-end sm:self-start flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

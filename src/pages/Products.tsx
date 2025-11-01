@@ -54,27 +54,33 @@ const Products = () => {
   const allProducts = dbProducts;
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-6 md:py-12 px-4">
       <div className="container">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Els Nostres Productes</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">Els Nostres Productes</h1>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Descobreix articles de segona mà per al teu bebè. Qualitat, sostenibilitat i preus
             justos.
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {allProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              image={product.image}
-              title={product.title}
-              description={product.description}
-              price={product.price}
-            />
-          ))}
-        </div>
+        {allProducts.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">
+            Encara no hi ha productes disponibles
+          </p>
+        ) : (
+          <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {allProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                image={product.image}
+                title={product.title}
+                description={product.description}
+                price={product.price}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
