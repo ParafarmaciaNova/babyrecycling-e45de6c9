@@ -1,4 +1,6 @@
-import ContactForm from "@/components/ContactForm";
+"use client";
+
+import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 const Contact = () => {
@@ -19,6 +21,39 @@ const Contact = () => {
       content: "Barcelona, Catalunya",
     },
   ];
+
+  // ESTAT DEL FORMULARI
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Enviant...");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus("Missatge enviat correctament!");
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        setStatus(data.error || "Error enviant el missatge");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus("Error enviant el missatge");
+    }
+  };
 
   return (
     <div className="min-h-screen py-12">
@@ -67,7 +102,42 @@ const Contact = () => {
           {/* Contact Form */}
           <div className="bg-card p-8 rounded-2xl border shadow-sm">
             <h2 className="text-2xl font-bold mb-6">Envia'ns un missatge</h2>
-            <ContactForm />
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Nom"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              />
+              <textarea
+                name="message"
+                placeholder="Missatge"
+                value={form.message}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-primary text-white rounded"
+              >
+                Envia
+              </button>
+              {status && <p className="mt-2">{status}</p>}
+            </form>
           </div>
         </div>
       </div>
