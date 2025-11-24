@@ -49,7 +49,6 @@ const Contact = () => {
               <h3 className="font-semibold mb-2">Horari d'atenció</h3>
               <p className="text-sm text-muted-foreground">
                 De dilluns a divendres de 10:00 a 16:00 i de 14:30 a 20:30.
-Dissabtes de 10:00 a 14:00.
                 <br />
                 Dissabtes de 9:00 a 14:00.
               </p>
