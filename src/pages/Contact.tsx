@@ -48,9 +48,9 @@ const Contact = () => {
             <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
               <h3 className="font-semibold mb-2">Horari d'atenció</h3>
               <p className="text-sm text-muted-foreground">
-                De dilluns a divendres de 10:00 a 16:00 i de 14:30 a 20:30.
+                De dilluns a divendres de 10:00 a 14:00 i de 16:30 a 20:30.
                 <br />
-                Dissabtes de 9:00 a 14:00.
+                Dissabtes de 10:00 a 14:00.
               </p>
             </div>
           </div>
