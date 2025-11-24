@@ -1,27 +1,20 @@
 import ContactForm from "@/components/ContactForm";
 import { Mail, MapPin, Phone } from "lucide-react";
-
 const Contact = () => {
-  const contactInfo = [
-    {
-      icon: Mail,
-      title: "Email",
-      content: "info@baby-recycling.com",
-    },
-    {
-      icon: Phone,
-      title: "Telèfon",
-      content: "640 632 108",
-    },
-    {
-      icon: MapPin,
-      title: "Adreça",
-      content: "Barcelona, Catalunya",
-    },
-  ];
-
-  return (
-    <div className="min-h-screen py-12">
+  const contactInfo = [{
+    icon: Mail,
+    title: "Email",
+    content: "info@baby-recycling.com"
+  }, {
+    icon: Phone,
+    title: "Telèfon",
+    content: "640 632 108"
+  }, {
+    icon: MapPin,
+    title: "Adreça",
+    content: "Barcelona, Catalunya"
+  }];
+  return <div className="min-h-screen py-12">
       <div className="container">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contacte</h1>
@@ -38,9 +31,8 @@ const Contact = () => {
               <h2 className="text-2xl font-bold mb-6">Informació de contacte</h2>
               <div className="space-y-4">
                 {contactInfo.map((info, index) => {
-                  const Icon = info.icon;
-                  return (
-                    <div key={index} className="flex items-start gap-4">
+                const Icon = info.icon;
+                return <div key={index} className="flex items-start gap-4">
                       <div className="p-3 rounded-full bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20">
                         <Icon className="h-5 w-5 text-primary" />
                       </div>
@@ -48,16 +40,16 @@ const Contact = () => {
                         <h3 className="font-semibold mb-1">{info.title}</h3>
                         <p className="text-muted-foreground">{info.content}</p>
                       </div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </div>
             </div>
 
             <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10">
               <h3 className="font-semibold mb-2">Horari d'atenció</h3>
               <p className="text-sm text-muted-foreground">
-                De dilluns a divendres de 9:00 a 14:00 i de 15:30 a 20:30.
+                De dilluns a divendres de 10:00 a 16:00 i de 14:30 a 20:30.
+Dissabtes de 10:00 a 14:00.
                 <br />
                 Dissabtes de 9:00 a 14:00.
               </p>
@@ -71,8 +63,6 @@ const Contact = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Contact;
